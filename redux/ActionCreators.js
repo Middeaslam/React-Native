@@ -1,6 +1,53 @@
 import * as ActionTypes from './ActionTypes';
 import { baseUrl } from '../shared/baseUrl';
 
+
+//Adding a Comment 
+
+export const addComment = (comment) => ({
+    type: ActionTypes.ADD_COMMENT,
+    payload: comment
+})
+
+// post a new Comment
+
+export const postComment = ( dishId, rating, author, comment) => (dispatch) => {
+    
+    const newComment = {
+        dishId: dishId,
+        rating: rating,
+        author: author,
+        comment: comment
+    }
+    newComment.date = new Date().toISOString();
+
+    return fetch( baseUrl + 'comments', {
+        method: 'POST',
+        body: JSON.stringify(newComment),
+        headers : {
+            'Content-Type' : 'application/json'
+        },
+        credentials: 'same-origin'
+    })
+        .then(response => {
+            if(response.ok) {
+                return response
+            }else {
+                var error = new Error( 'Error ' + response.status + ': ' + response.statusText)
+                error.response = response;
+                throw error;
+            }
+        }, error => {
+            var errmess = new Error( error.message)
+            throw errmess
+        })
+        .then(response => response.json())
+        .then(response => setTimeout(
+            () => {dispatch(addComment(response))}, 2000
+        ))
+        .catch(error => console.log('Post Comments ',error.message))
+}
+
 export const fetchComments = () => (dispatch) => {
     return fetch(baseUrl + 'comments')
         .then(response => {
@@ -149,3 +196,5 @@ export const addFavorite = (dishId) => ({
     type: ActionTypes.ADD_FAVORITE,
     payload: dishId
 });
+
+
