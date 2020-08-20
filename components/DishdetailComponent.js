@@ -4,6 +4,7 @@ import { Card, Icon, Input, Rating } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { baseUrl } from '../shared/baseUrl';
 import { postFavorite, postComment } from '../redux/ActionCreators';
+import * as Animatable from 'react-native-animatable';
 
 const mapStateToProps = state => {
     return {
@@ -15,7 +16,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
     postFavorite: (dishId) => dispatch(postFavorite(dishId)),
-    postComment : (dishId, rating, author, comment) => dispatch(postComment (dishId, rating, author, comment))
+    postComment: (dishId, rating, author, comment) => dispatch(postComment(dishId, rating, author, comment))
 });
 
 function RenderDish(props) {
@@ -23,34 +24,36 @@ function RenderDish(props) {
 
     if (dish != null) {
         return (
-            <Card
-                featuredTitle={dish.name}
-                image={{ uri: baseUrl + dish.image }}
-            >
-                <Text style={{ margin: 10 }}>
-                    {dish.description}
-                </Text>
-                <Icon
-                    raised
-                    reverse
-                    name={props.favorite ? 'heart' : 'heart-o'}
-                    type='font-awesome'
-                    color='#f50'
-                    onPress={() => props.favorite ? console.log('Already Favorite') : props.onPress()}
-                    style={{ flex: 1 }}
+            <Animatable.View animation="fadeInDown" duration={2000} delay={1000}>
+                <Card
+                    featuredTitle={dish.name}
+                    image={{ uri: baseUrl + dish.image }}
                 >
-                </Icon>
+                    <Text style={{ margin: 10 }}>
+                        {dish.description}
+                    </Text>
+                    <Icon
+                        raised
+                        reverse
+                        name={props.favorite ? 'heart' : 'heart-o'}
+                        type='font-awesome'
+                        color='#f50'
+                        onPress={() => props.favorite ? console.log('Already Favorite') : props.onPress()}
+                        style={{ flex: 1 }}
+                    >
+                    </Icon>
 
-                <Icon
-                    raised
-                    reverse
-                    name={'pencil'}
-                    type='font-awesome' color='#512DA8'
-                    onPress={() => props.toggleModal()}
-                    style={{ flex: 1 }}
-                >
-                </Icon>
-            </Card>
+                    <Icon
+                        raised
+                        reverse
+                        name={'pencil'}
+                        type='font-awesome' color='#512DA8'
+                        onPress={() => props.toggleModal()}
+                        style={{ flex: 1 }}
+                    >
+                    </Icon>
+                </Card>
+            </Animatable.View>
         )
     } else {
         return (<View></View>)
@@ -72,14 +75,16 @@ function RenderComments(props) {
     }
 
     return (
-        <Card title={"Comments"}>
-            <FlatList
-                data={comments}
-                renderItem={renderCommentItem}
-                keyExtractor={item => item.id.string}
-            >
-            </FlatList>
-        </Card>
+        <Animatable.View animation="fadeInUp" duration={2000} delay={1000}>
+            <Card title={"Comments"}>
+                <FlatList
+                    data={comments}
+                    renderItem={renderCommentItem}
+                    keyExtractor={item => item.id.string}
+                >
+                </FlatList>
+            </Card>
+        </Animatable.View>
     )
 }
 
@@ -113,7 +118,7 @@ class Dishdetail extends Component {
         this.setState({ rating: rating })
     }
 
-    handleComment ( dishId, rating, author, comment) {
+    handleComment(dishId, rating, author, comment) {
         console.log(dishId, rating, author, comment)
         this.props.postComment(dishId, rating, author, comment);
         this.toggleModal();
@@ -144,7 +149,7 @@ class Dishdetail extends Component {
                         <Rating
                             showRating
                             type='star'
-                            count= {5}
+                            count={5}
                             ratingCount={5}
                             fractions={1}
                             startingValue={3}
@@ -178,7 +183,7 @@ class Dishdetail extends Component {
                                 onPress={() => this.handleComment(dishId, this.state.rating, this.state.author, this.state.comment)}
                                 title="Submit"
                                 color="#512DA8"
-                                style={{ marginTop: 10}}
+                                style={{ marginTop: 10 }}
                                 accessibilityLabel="Post your comment"
                             ></Button>
                         </View>
@@ -202,7 +207,7 @@ const styles = StyleSheet.create({
     modal: {
         justifyContent: 'center',
         margin: 20,
-        
+
     },
     modalTitle: {
         fontSize: 24,
@@ -222,7 +227,7 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         margin: 20,
-        marginTop:40
+        marginTop: 40
     }
 })
 
