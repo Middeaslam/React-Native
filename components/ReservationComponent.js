@@ -1,7 +1,13 @@
 import React, { Component } from 'react';
-import { Text, View, ScrollView, StyleSheet, Picker, Switch, Button, Alert } from 'react-native';
-import DatePicker from 'react-native-datepicker';
+import { Text, View, ScrollView, StyleSheet, Picker, Switch, Button, Alert, Platform, TouchableOpacity } from 'react-native';
+import { Icon } from 'react-native-elements';
+// import DatePicker from 'react-native-datepicker';
+import DateTimePicker from '@react-native-community/datetimepicker'
 import * as Animatable from 'react-native-animatable';
+import * as Permissions from 'expo-permissions';
+import Moment from 'moment'
+// import * as Notifications from 'expo-notifications';
+import { Notifications} from 'expo'
 
 class Reservation extends Component {
 
@@ -10,14 +16,18 @@ class Reservation extends Component {
         this.state = {
             guests: 1,
             smoking: false,
-            date: '',
-            showModal: false
+            date: new Date(),
+            showModal: false,
+            mode: 'date',
+            show: false
         }
     }
 
     static navigationOptions = {
         title: 'Reserve Table'
     }
+
+   
 
     handleReservation() {
         // console.log(JSON.stringify(this.state));
@@ -34,7 +44,10 @@ class Reservation extends Component {
                 },
                 {
                     text: 'OK',
-                    onPress: () => this.resetForm()
+                    onPress: () =>  {
+                        this.presentLocalNotification(this.state.date)
+                        this.resetForm()
+                    }
                 },
             ],
             { cancelable: false}
@@ -49,9 +62,44 @@ class Reservation extends Component {
         })
     }
 
-    toggleModal() {
-        this.setState({ showModal: !this.state.showModal })
+    async obtainNotificationPermission() {
+        let permission = await Permissions.getAsync(Permissions.USER_FACING_NOTIFICATIONS);
+        if (permission.status !== 'granted') {
+            permission = await Permissions.askAsync(Permissions.USER_FACING_NOTIFICATIONS);
+            if (permission.status !== 'granted') {
+                Alert.alert('Permission not granted to show notifications');
+            }
+        }else {
+            if(Platform.OS === 'android'){
+                Notifications.createChannelAndroidAsync('confusion', {
+                    name: 'confusion',
+                    priority: 'max',
+                    sound: true,
+                    vibrate: true
+                })
+            }
+        }
+        return permission;
     }
+
+    async presentLocalNotification(date) {
+        await this.obtainNotificationPermission();
+        Notifications.presentLocalNotificationAsync({
+            title: 'Your Reservation',
+            body: 'Reservation for '+ date + ' requested',
+            ios: {
+                sound: true
+            },
+            android: {
+                channelId: 'confusion',
+                color: '#512DA8'
+            }
+        });
+
+       
+    }
+
+    
 
     render() {
         return (
@@ -83,29 +131,40 @@ class Reservation extends Component {
                     </View>
                     <View style={styles.formRow}>
                         <Text style={styles.formLabel}>Date and Time</Text>
-                        <DatePicker
-                            style={{ flex: 2, marginRight: 20 }}
-                            date={this.state.date}
-                            format=''
-                            mode="datetime"
-                            placeholder="select date and Time"
-                            minDate="2017-01-01"
-                            confirmBtnText="Confirm"
-                            cancelBtnText="Cancel"
-                            customStyles={{
-                                dateIcon: {
-                                    position: 'absolute',
-                                    left: 0,
-                                    top: 4,
-                                    marginLeft: 0
-                                },
-                                dateInput: {
-                                    marginLeft: 36
-                                }
-                                // ... You can check the source to find the other keys. 
+                        <TouchableOpacity style={styles.formItem}
+                            style={{
+                                padding: 7,
+                                borderColor: '#512DA8',
+                                borderWidth: 2,
+                                flexDirection: "row"
                             }}
-                            onDateChange={(newdate) => { this.setState({ date: newdate }) }}
-                        />
+                            onPress = { () => this.setState({ show: true, mode: 'date'})}
+                        >
+                            <Icon type='font-awesome' name='calendar' color='#512DA8'></Icon>
+                            <Text>
+                                {" " + Moment(this.state.date).format('DD-MM-YYYY h:mm A')}
+                            </Text>
+                        </TouchableOpacity>
+
+                        {this.state.show && (
+                            <DateTimePicker
+                                value={this.state.date}
+                                mode={this.state.mode}
+                                minimumDate = { new Date()}
+                                minimumInterval ={30}
+                                onChange = {(event, date) => {
+                                    if(date === undefined) {
+                                        this.setState({ show: false})
+                                    }else {
+                                        this.setState({
+                                            show: this.state.mode === "time" ? false : true,
+                                            mode: "time", 
+                                            date: new Date(date)
+                                        })
+                                    }
+                                }}
+                            />
+                        )}
                     </View>
                     <View style={styles.formRow}>
                         <Button
