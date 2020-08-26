@@ -128,18 +128,7 @@ class RegisterTab extends Component {
         }
     }
 
-    processImage = async (imageUri) => {
-        let processedImage = await ImageManipulator.manipulateAsync(
-            imageUri, 
-            [
-                {
-                    resize: { width: 400 }
-                }
-            ],
-            { format: 'png'}
-        );
-        this.setState({ imageUrl : processedImage.uri})
-    }
+    
 
     static navigationOptions = {
         title: 'Register',
@@ -168,6 +157,19 @@ class RegisterTab extends Component {
             }
         }
 
+    }
+
+    processImage = async (imageUri) => {
+        let processedImage = await ImageManipulator.manipulateAsync(
+            imageUri, 
+            [
+                {
+                    resize: { width: 400 }
+                }
+            ],
+            { format: 'png'}
+        );
+        this.setState({ imageUrl : processedImage.uri})
     }
 
     handleRegister() {
